@@ -1,0 +1,19 @@
+[project]
+name = "pybites-pdc-snipster"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "jwattier", email = "jasonwattier@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "sqlmodel>=0.0.27",
+]
+
+[project.scripts]
+pybites-pdc-snipster = "pybites_pdc_snipster:main"
+
+[build-system]
+requires = ["uv_build>=0.8.24,<0.9.0"]
+build-backend = "uv_build"
