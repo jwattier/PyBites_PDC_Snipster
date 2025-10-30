@@ -49,8 +49,7 @@ class InMemorySnippetRepot(SnippetRepository):
 
 class DBSnippetRepot(SnippetRepository):
     def __init__(self):
-        # super().__init__()
-        pass
+        self._data: dict[int, Snippet] = {}
 
     def add(self, snippet: Snippet, engine) -> None:
         with Session(engine) as session:
@@ -60,15 +59,22 @@ class DBSnippetRepot(SnippetRepository):
     def list():
         pass
 
-    def get():
+    def get(self, snippet_id: int, engine) -> Snippet | None:
         pass
+        # with Session(engine) as session:
 
     def delete(self, snippet: Snippet, snippet_id: int, engine) -> None:
+        # TODO: does the scenario of if the snippet id is not in the class need to be handled?
+        # I don't believe a value not being in the database creates an error with the select
+
         with Session(engine) as session:
             statement = select(snippet).where(snippet.id == snippet_id)
             results = session.exec(statement)
             deleted_snippet = results.one()
-            print(f"Snippet: {deleted_snippet} has been deleted.")
+            print(f"Snippet: {deleted_snippet} will be deleted.")
+
+            session.delete(deleted_snippet)
+            session.commit()
 
 
 class JSONSnippetRepo(SnippetRepository):
