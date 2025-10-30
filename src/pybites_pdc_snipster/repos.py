@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Sequence
 
-from sqlmodel import SQLModel
+from sqlmodel import Session, SQLModel, select
 
 from pybites_pdc_snipster.exceptions import SnippetNotFoundError
 from pybites_pdc_snipster.models import Snippet
@@ -48,7 +48,27 @@ class InMemorySnippetRepot(SnippetRepository):
 
 
 class DBSnippetRepot(SnippetRepository):
-    pass
+    def __init__(self):
+        # super().__init__()
+        pass
+
+    def add(self, snippet: Snippet, engine) -> None:
+        with Session(engine) as session:
+            session.add(snippet)
+            session.commit()
+
+    def list():
+        pass
+
+    def get():
+        pass
+
+    def delete(self, snippet: Snippet, snippet_id: int, engine) -> None:
+        with Session(engine) as session:
+            statement = select(snippet).where(snippet.id == snippet_id)
+            results = session.exec(statement)
+            deleted_snippet = results.one()
+            print(f"Snippet: {deleted_snippet} has been deleted.")
 
 
 class JSONSnippetRepo(SnippetRepository):
