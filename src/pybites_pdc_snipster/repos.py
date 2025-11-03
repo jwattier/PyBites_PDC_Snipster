@@ -56,16 +56,23 @@ class DBSnippetRepot(SnippetRepository):
             session.add(snippet)
             session.commit()
 
-    def list():
-        pass
+    def list(self, engine) -> list[Snippet]:
+        with Session(engine) as session:
+            stmt = select(Snippet)
+            results = session.exec(stmt)
+        return results
 
     def get(self, snippet_id: int, engine) -> Snippet | None:
-        pass
-        # with Session(engine) as session:
+        with Session(engine) as session:
+            stmt = select(Snippet).where(Snippet.snippet_id == snippet_id)
+            snippet = session.exec(stmt).one_or_none()
+            output = snippet.model_dump() if snippet else None
+
+        return output
 
     def delete(self, snippet: Snippet, snippet_id: int, engine) -> None:
-        # TODO: does the scenario of if the snippet id is not in the class need to be handled?
-        # I don't believe a value not being in the database creates an error with the select
+        if snippet_id not in self._data:
+            raise SnippetNotFoundError(f"Snippet with id {snippet_id} not found")
 
         with Session(engine) as session:
             statement = select(snippet).where(snippet.id == snippet_id)
