@@ -6,8 +6,6 @@ from sqlmodel import Session, SQLModel, select
 from pybites_pdc_snipster.exceptions import SnippetNotFoundError
 from pybites_pdc_snipster.models import Snippet
 
-SQLModel.__table_args__ = {"extend_existing": True}
-
 
 class SnippetRepository(ABC):  # pragma: no cover
     @abstractmethod

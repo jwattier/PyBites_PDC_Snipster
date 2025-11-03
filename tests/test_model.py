@@ -1,8 +1,9 @@
 import pytest
 from sqlmodel import Session, SQLModel, create_engine
 
-from src.pybites_pdc_snipster.models import Snippet
+from pybites_pdc_snipster.models import Snippet
 
+# TODO: this is a file based db, change to in-memory for tests
 engine = create_engine("sqlite:///memory", echo=True)
 
 
