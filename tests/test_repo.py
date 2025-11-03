@@ -2,12 +2,16 @@ import pytest
 
 from pybites_pdc_snipster.exceptions import SnippetNotFoundError
 from pybites_pdc_snipster.models import Snippet
-from pybites_pdc_snipster.repos import InMemorySnippetRepot
+from pybites_pdc_snipster.repos import DBSnippetRepot, InMemorySnippetRepot
 
 
-@pytest.fixture(scope="function")
-def repo():
-    return InMemorySnippetRepot()
+def get_repo(name):
+    return {"memory": InMemorySnippetRepot(), "db": DBSnippetRepot()}[name]
+
+
+@pytest.fixture(scope="function", params=["memory", "db"])
+def repo(request):
+    return get_repo(request.param)
 
 
 @pytest.fixture(scope="function")
