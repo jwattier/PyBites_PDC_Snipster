@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Sequence
 
-from sqlmodel import Session, SQLModel, select
+from sqlmodel import Session, select
 
 from pybites_pdc_snipster.exceptions import SnippetNotFoundError
 from pybites_pdc_snipster.models import Snippet
@@ -57,10 +57,11 @@ class DBSnippetRepot(SnippetRepository):
     def list(self, engine) -> list[Snippet]:
         with Session(engine) as session:
             stmt = select(Snippet)
-            results = session.exec(stmt)
-        return results
+            results = session.exec(stmt).all()
 
-    def get(self, snippet_id: int, engine) -> Snippet | None:
+        return results if results else None
+
+    def get(self, snippet_id: int, engine) -> dict | None:
         with Session(engine) as session:
             stmt = select(Snippet).where(Snippet.snippet_id == snippet_id)
             snippet = session.exec(stmt).one_or_none()
