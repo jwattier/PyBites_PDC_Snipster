@@ -3,8 +3,7 @@ from sqlmodel import Session, SQLModel, create_engine
 
 from pybites_pdc_snipster.models import Snippet
 
-# TODO: this is a file based db, change to in-memory for tests
-engine = create_engine("sqlite:///memory", echo=True)
+engine = create_engine("sqlite:///:memory:", echo=True)
 
 
 @pytest.fixture(scope="module", autouse=True)

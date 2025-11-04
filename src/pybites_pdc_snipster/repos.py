@@ -7,7 +7,7 @@ from pybites_pdc_snipster.exceptions import SnippetNotFoundError
 from pybites_pdc_snipster.models import Snippet
 
 
-class SnippetRepository(ABC):  # pragma: no cover
+class AbstractSnippetRepository(ABC):  # pragma: no cover
     @abstractmethod
     def add(self, snippet: Snippet) -> None:
         pass
@@ -25,7 +25,7 @@ class SnippetRepository(ABC):  # pragma: no cover
         pass
 
 
-class InMemorySnippetRepot(SnippetRepository):
+class InMemorySnippetRepot(AbstractSnippetRepository):
     def __init__(self) -> None:
         self._data: dict[int, Snippet] = {}
 
@@ -45,43 +45,41 @@ class InMemorySnippetRepot(SnippetRepository):
         self._data.pop(snippet_id, None)
 
 
-class DBSnippetRepot(SnippetRepository):
-    def __init__(self):
-        self._data: dict[int, Snippet] = {}
+class DBSnippetRepot(AbstractSnippetRepository):
+    def __init__(self, session: Session) -> None:
+        # have the session exist at the instance/class level
+        # that way the session management becomes easier across
+        # multiple calls.
+        self.session = session
 
-    def add(self, snippet: Snippet, engine) -> None:
-        with Session(engine) as session:
-            session.add(snippet)
-            session.commit()
+    def add(self, snippet: Snippet) -> dict:
+        new_snippet = Snippet.create(**snippet.model_dump())
+        self.session.add(new_snippet)
+        self.session.commit()
+        self.session.refresh(new_snippet)
 
-    def list(self, engine) -> list[Snippet]:
-        with Session(engine) as session:
-            stmt = select(Snippet)
-            results = session.exec(stmt).all()
+        return new_snippet
+
+    def list(self) -> list[Snippet] | None:
+        stmt = select(Snippet)
+        results = self.session.exec(stmt).all()
 
         return results if results else None
 
-    def get(self, snippet_id: int, engine) -> dict | None:
-        with Session(engine) as session:
-            stmt = select(Snippet).where(Snippet.snippet_id == snippet_id)
-            snippet = session.exec(stmt).one_or_none()
-            output = snippet.model_dump() if snippet else None
+    def get(self, snippet_id: int) -> dict | None:
+        stmt = select(Snippet).where(Snippet.snippet_id == snippet_id)
+        snippet = self.session.exec(stmt).one_or_none()
 
-        return output
+        return snippet.model_dump() if snippet else None
 
-    def delete(self, snippet: Snippet, snippet_id: int, engine) -> None:
-        if snippet_id not in self._data:
+    def delete(self, snippet_id: int) -> None:
+        snippet_to_delete = self.session.get(Snippet, snippet_id)
+        if snippet_to_delete is None:
             raise SnippetNotFoundError(f"Snippet with id {snippet_id} not found")
 
-        with Session(engine) as session:
-            statement = select(snippet).where(snippet.id == snippet_id)
-            results = session.exec(statement)
-            deleted_snippet = results.one()
-            print(f"Snippet: {deleted_snippet} will be deleted.")
-
-            session.delete(deleted_snippet)
-            session.commit()
+        self.session.delete(snippet_to_delete)
+        self.session.commit()
 
 
-class JSONSnippetRepo(SnippetRepository):
+class JSONSnippetRepo(AbstractSnippetRepository):
     pass

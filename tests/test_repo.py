@@ -1,4 +1,5 @@
 import pytest
+from sqlmodel import Session, SQLModel, create_engine
 
 from pybites_pdc_snipster.exceptions import SnippetNotFoundError
 from pybites_pdc_snipster.models import Snippet
@@ -6,9 +7,18 @@ from pybites_pdc_snipster.repos import DBSnippetRepot, InMemorySnippetRepot
 
 
 def get_repo(name):
-    return {"memory": InMemorySnippetRepot(), "db": DBSnippetRepot()}[name]
+    if name == "memory":
+        return InMemorySnippetRepot()
+    elif name == "db":
+        engine = create_engine("sqlite:///:memory:", echo=False)
+        SQLModel.metadata.create_all(engine)
+        with Session(engine) as session:
+            return DBSnippetRepot(session=session)
 
 
+# TODO: break up the test functions into memory tests and db tests
+# currently the classes are structured differently enough that having separate tests makes
+# more sense.
 @pytest.fixture(scope="function", params=["memory", "db"])
 def repo(request):
     return get_repo(request.param)
@@ -63,6 +73,6 @@ def test_delete_snippet(add_snippet, repo):
     assert repo._data.get(1) is None
 
 
-def test_delete_non_eixsting_snippet(repo):
+def test_delete_non_existing_snippet(repo):
     with pytest.raises(SnippetNotFoundError):
         repo.delete(99999)
