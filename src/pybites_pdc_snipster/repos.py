@@ -52,31 +52,25 @@ class DBSnippetRepot(AbstractSnippetRepository):
         # multiple calls.
         self.session = session
 
-    def add(self, snippet: Snippet) -> dict:
-        new_snippet = Snippet.create(**snippet.model_dump())
-        self.session.add(new_snippet)
+    def add(self, snippet: Snippet) -> None:
+        self.session.add(snippet)
         self.session.commit()
-        self.session.refresh(new_snippet)
+        self.session.refresh(snippet)
 
-        return new_snippet
 
-    def list(self) -> list[Snippet] | None:
+    def list(self) -> Sequence[Snippet]:
         stmt = select(Snippet)
-        results = self.session.exec(stmt).all()
+        return list(self.session.exec(stmt).all())
 
-        return results if results else None
+    def get(self, snippet_id: int) -> Snippet | None:
+        stmt = select(Snippet).where(Snippet.id == snippet_id)
+        return self.session.exec(stmt).one_or_none()
 
-    def get(self, snippet_id: int) -> dict | None:
-        stmt = select(Snippet).where(Snippet.snippet_id == snippet_id)
-        snippet = self.session.exec(stmt).one_or_none()
-
-        return snippet.model_dump() if snippet else None
 
     def delete(self, snippet_id: int) -> None:
         snippet_to_delete = self.session.get(Snippet, snippet_id)
         if snippet_to_delete is None:
             raise SnippetNotFoundError(f"Snippet with id {snippet_id} not found")
-
         self.session.delete(snippet_to_delete)
         self.session.commit()
 

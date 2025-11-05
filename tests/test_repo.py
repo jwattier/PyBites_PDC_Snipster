@@ -49,7 +49,14 @@ def add_another_snippet(repo, add_snippet):
 
 
 def test_add_snippet(repo, add_snippet):
-    assert repo._data[1] == add_snippet
+    repo.add(add_snippet)
+    if hasattr(repo, "_data"):
+        assert repo._data[1] == add_snippet
+    else:
+        result = repo.get(1)
+        assert result is not None
+        assert result.title == add_snippet.title
+        assert result.language == add_snippet.language
 
 
 def test_list_snippets_one_snippet(add_snippet, repo):
@@ -61,6 +68,7 @@ def test_list_snippets_two_snippets(add_another_snippet, repo):
 
 
 def test_get_snippet(add_snippet, repo):
+    repo.add(add_snippet)
     assert repo.get(1) == add_snippet
 
 
@@ -69,8 +77,12 @@ def test_get_snippet_not_found(add_snippet, repo):
 
 
 def test_delete_snippet(add_snippet, repo):
+    repo.add(add_snippet)
     repo.delete(1)
-    assert repo._data.get(1) is None
+    if hasattr(repo, "_data"):
+        assert repo._data.get(1) is None
+    else:
+        assert repo.get(1) is None
 
 
 def test_delete_non_existing_snippet(repo):
