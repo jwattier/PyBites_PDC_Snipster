@@ -6,22 +6,15 @@ from pybites_pdc_snipster.models import Snippet
 from pybites_pdc_snipster.repos import DBSnippetRepot, InMemorySnippetRepot
 
 
-def get_repo(name):
-    if name == "memory":
-        return InMemorySnippetRepot()
-    elif name == "db":
+@pytest.fixture(scope="function", params=["memory", "db"])
+def repo(request):
+    if request.param == "memory":
+        yield InMemorySnippetRepot()
+    else:
         engine = create_engine("sqlite:///:memory:", echo=False)
         SQLModel.metadata.create_all(engine)
         with Session(engine) as session:
-            return DBSnippetRepot(session=session)
-
-
-# TODO: break up the test functions into memory tests and db tests
-# currently the classes are structured differently enough that having separate tests makes
-# more sense.
-@pytest.fixture(scope="function", params=["memory", "db"])
-def repo(request):
-    return get_repo(request.param)
+            yield DBSnippetRepot(session=session)
 
 
 @pytest.fixture(scope="function")
