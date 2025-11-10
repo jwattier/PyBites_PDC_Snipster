@@ -1,9 +1,9 @@
 import pytest
 from sqlmodel import Session, SQLModel, create_engine
 
-from src.pybites_pdc_snipster.models import Snippet
+from pybites_pdc_snipster.models import Snippet
 
-engine = create_engine("sqlite:///memory", echo=True)
+engine = create_engine("sqlite:///:memory:", echo=True)
 
 
 @pytest.fixture(scope="module", autouse=True)

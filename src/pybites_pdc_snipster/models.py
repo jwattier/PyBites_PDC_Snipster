@@ -12,7 +12,7 @@ class Snippet(SQLModel, table=True):
     tags: str | None = None
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime | None = None
-    favorite: bool
+    favorite: bool = False
 
     @classmethod
     def create(cls, **kwargs):
