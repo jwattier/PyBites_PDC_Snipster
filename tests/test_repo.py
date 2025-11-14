@@ -16,9 +16,6 @@ def get_repo(name):
             return DBSnippetRepot(session=session)
 
 
-# TODO: break up the test functions into memory tests and db tests
-# currently the classes are structured differently enough that having separate tests makes
-# more sense.
 @pytest.fixture(scope="function", params=["memory", "db"])
 def repo(request):
     return get_repo(request.param)
@@ -59,6 +56,38 @@ def test_add_snippet(repo, add_snippet):
         assert result.language == add_snippet.language
 
 
+@pytest.fixture
+def example_snippet() -> Snippet:
+    return Snippet(title="Test", code="print('hi')", language="python")
+
+
+@pytest.fixture
+def example_snippets() -> list[Snippet]:
+    return [
+        Snippet(
+            title="print to stdout",
+            code="print('hello world')",
+            language="python",
+        ),
+        Snippet(
+            title="get user input",
+            code="input('enter name: ')",
+            language="python",
+        ),
+        Snippet(
+            title="random number",
+            code="let _ = nums.choose(&mt rng);",
+            language="rust",
+        ),
+    ]
+
+
+@pytest.fixture
+def add_snippets(repo, example_snippets):
+    for snippet in example_snippets:
+        repo.add(snippet)
+
+
 def test_list_snippets_one_snippet(add_snippet, repo):
     assert len(repo.list()) == 1
 
@@ -88,3 +117,24 @@ def test_delete_snippet(add_snippet, repo):
 def test_delete_non_existing_snippet(repo):
     with pytest.raises(SnippetNotFoundError):
         repo.delete(99999)
+
+
+def test_favorite_snippet(repo, add_snippets):
+    snippet = repo.get(1)
+    assert snippet.favorite is False
+    repo.toggle_favorite(1)
+    snippet = repo.get(1)
+    assert snippet.favorite is True
+    repo.toggle_favorite(1)
+    snippet = repo.get(1)
+    assert snippet.favorite is False
+    with pytest.raises(SnippetNotFoundError):
+        repo.toggle_favorite(100)
+
+
+def test_tag_snippet(repo, add_snippets):
+    pass
+
+
+def test_search_snippet(repo, add_snippets):
+    pass

@@ -20,8 +20,6 @@ class Snippet(SQLModel, table=True):
         return snippet
 
 
-# TODO create "add_snippet" function
-
 if __name__ == "__main__":  # pragma: no cover
     sqlite_file_name = "snippet.db"
     sqllite_url = f"sqlite:///{sqlite_file_name}"
